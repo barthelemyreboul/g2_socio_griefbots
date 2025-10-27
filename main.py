@@ -19,7 +19,7 @@ def get_thread(thread_name: str) -> Subreddit:
     return subreddit
 
 if __name__ == "__main__":
-    thread_name = "griefbots"
+    thread_name = "ProjectDecember1982"
     subreddit = get_thread(thread_name)
 
     # 5 most recent posts
