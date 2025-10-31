@@ -4,5 +4,6 @@ version = "1.0.0"
 requires-python = ">=3.13"
 dependencies= [
     "dotenv>=0.9.9",
+    "nltk>=3.9.2",
     "praw>=7.8.1",
 ]
