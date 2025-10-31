@@ -4,9 +4,11 @@ Basic Python repo for a Sciences Po academic project in Sociology of the Public 
 ## Overview
 
 The point of the project is to study the evolution of mourning practices at the era of digital technologies, with a focus on the use of griefbots (chatbots designed to simulate conversations with deceased individuals) on social media platforms. 
+
 The project aims to analyze how these technologies impact the grieving process and the social dynamics surrounding death and mourning in online spaces.
 
 As such, Reddit is used as a data source, given its wide range of communities and discussions related to grief and mourning, especially on r/ProjectDecember1982 & r/GriefSupport.
+
 The posts are collected using the PRAW (Python Reddit API Wrapper) library, which allows for easy access to Reddit's API.
 
 ## Requirements
@@ -17,4 +19,13 @@ The posts are collected using the PRAW (Python Reddit API Wrapper) library, whic
 ## Run the Code
 1. Clone the repository to your local machine.
 2. Get Reddit API credentials and set them up in a ".env" file. 
-3. Run main.py. 
+3. Run main.py.
+
+
+## References
+
+For the positive words: https://gist.github.com/mkulakowski2/4289437
+
+For the negative words: https://gist.github.com/mkulakowski2/4289441
+
+Both files inherited from:  Minqing Hu and Bing Liu. "Mining and Summarizing Customer Reviews." Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD-2004), Aug 22-25, 2004, Seattle, Washington, USA, 
