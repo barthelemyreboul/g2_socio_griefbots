@@ -13,7 +13,8 @@ The posts are collected using the PRAW (Python Reddit API Wrapper) library, whic
 
 ## Requirements
 - Python 3.x
-- PRAW library
+- uv python version handler
+- PRAW library --> see the "pyproject.toml" file for dependencies
 - Reddit's API credentials (client_id, client_secret) --> ask Barthélemy for these
 
 ## Run the Code
