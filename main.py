@@ -1,9 +1,11 @@
-from collections import Counter
+import os
+import re
 import praw
+from collections import Counter
+
 from praw.models import Subreddit
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
-import os
+
 from nltk.corpus import stopwords
 import nltk
 from datetime import datetime
@@ -99,95 +101,140 @@ def analyze_post_interactions(subreddit: Subreddit, type: str, limit: int = 5) -
     #return plot_sentiment_bars(posts_stats)
 
 
+def contains_keyword(text: str, keywords: list[str]) -> bool:
+    """
+    Checks if any of the keywords are present in the given text (whole words only).
+    Args:
+        text (str): The text to search within.
+        keywords (list[str]): List of keywords to search for.
+    Returns:
+        bool: True if any keyword is found, False otherwise.
+    """
+    if not text or not keywords:
+        return False
+    for kw in keywords:
+        pattern = rf"\b{re.escape(kw)}\b"
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return True
+    return False
+
+
 def extract_post_data(
     subreddit: Subreddit,
     limit: int = 5,
     start_date: datetime | None = None,
-    end_date: datetime | None = None
+    end_date: datetime | None = None,
+    key_words: list[str] | None = None
 ) -> list[dict]:
     """
-    Extracts post and comment data from a subreddit within a date range.
+    Extracts posts and comments containing given keywords or within a date range.
     Args:
         subreddit (Subreddit): The subreddit to extract data from.
         limit (int): Maximum number of posts and comments to extract.
         start_date (datetime | None): Start date for filtering posts/comments.
         end_date (datetime | None): End date for filtering posts/comments.
+        key_words (list[str] | None): List of keywords to filter posts/comments.
     Returns:
-        list[dict]: A list of dictionaries containing post and comment data.
+        list[dict]: List of extracted post and comment data.
+
     """
     all_data = []
     posts = subreddit.top(limit=None)
     post_count = 0
+    scrapped = 0
+
     for post in posts:
+        scrapped += 1
         if post_count >= limit:
             break
 
-        # Time filtering
+        #Filter post by date
         post_datetime = datetime.utcfromtimestamp(post.created_utc)
-
         if start_date and post_datetime < start_date:
             continue
         if end_date and post_datetime > end_date:
             continue
 
+        #Check post keywords
+        post_content = getattr(post, "selftext", "") or ""
+        post_has_keyword = contains_keyword(post_content, key_words) if key_words else True
+
+        #Build post data
+        post_id = f"RD-{post_count + 1:02d}"
         post_data = {
-            "ID": post.id or None,
-            "Reddit URL": f"https://www.reddit.com{post.permalink}" if post.permalink else None,
-            "Thread Title": subreddit.display_name or None,
-            "Subreddit": post.title or None,
-            "Content": getattr(post, "selftext", "").replace("\n", " ").strip() or None,
+            "ID": post_id,
+            "Reddit URL": f"https://www.reddit.com{post.permalink}" if hasattr(post, "permalink") else None,
+            "Thread Title": getattr(post, "title", None),
+            "Subreddit": getattr(subreddit, "display_name", None),
+            "Content": post_content.replace("\n", " ").strip() or None,
             "Category": "post",
-            "Author": "u/" + str(post.author) if post.author else None,
+            "Author": ("u/" + str(post.author)) if getattr(post, "author", None) else None,
             "Date Posted": post_datetime.strftime("%d/%m/%Y"),
-            "Number of comments": post.num_comments or 0,
-            "Upvotes": post.score or 0,
+            "Number of comments": getattr(post, "num_comments", 0),
+            "Upvotes": getattr(post, "score", 0),
             "Keywords": None,
             "Sentiment": None,
-            "Tag": post.link_flair_text or None,
+            "Tag": getattr(post, "link_flair_text", None),
             "Date added": datetime.utcnow().strftime("%d/%m/%Y"),
-            "Who added": "automated_script"
+            "Who added": "automated_script",
         }
-        all_data.append(post_data)
-        post_count += 1
 
-        # Loading all comments
+        #Load comments
         post.comments.replace_more(limit=0)
         comments = post.comments.list()
-
         comment_count = 0
+        relevant_comments = []
+
         for comment in comments:
+            scrapped += 1
             if comment_count >= limit:
                 break
-
-            if not hasattr(comment, "created_utc"):
+            if not hasattr(comment, "body") or not hasattr(comment, "created_utc"):
                 continue
+
+            comment_text = getattr(comment, "body", "")
             comment_datetime = datetime.utcfromtimestamp(comment.created_utc)
 
+            #Filter comment by date
             if start_date and comment_datetime < start_date:
                 continue
             if end_date and comment_datetime > end_date:
                 continue
 
+            #Check comment for keywords
+            comment_has_keyword = contains_keyword(comment_text, key_words) if key_words else True
+            if not comment_has_keyword:
+                continue
+
+            comment_id = f"{post_id}-{comment_count + 1:02d}"
             comment_data = {
-                "ID": comment.id or None,
+                "ID": comment_id,
                 "Reddit URL": f"https://www.reddit.com{getattr(comment, 'permalink', '')}" if hasattr(comment, "permalink") else None,
-                "Thread Title": subreddit.display_name or None,
-                "Subreddit": post.title or None,
-                "Content": getattr(comment, "body", "").replace("\n", " ").strip() or None,
+                "Thread Title": getattr(post, "title", None),
+                "Subreddit": "r/"+getattr(subreddit, "display_name", None),
+                "Content": comment_text.replace("\n", " ").strip() or None,
                 "Category": "comment",
-                "Author": "u/" + (str(comment.author) if getattr(comment, "author", "") else  ""),
+                "Author": ("u/" + (str(comment.author)) if getattr(comment, "author", None) else ""),
                 "Date Posted": comment_datetime.strftime("%d/%m/%Y"),
                 "Number of comments": None,
-                "Upvotes": getattr(comment, "score", 0) or 0,
+                "Upvotes": getattr(comment, "score", 0),
                 "Keywords": None,
                 "Sentiment": None,
-                "Tag": post.link_flair_text or None,
+                "Tag": getattr(post, "link_flair_text", None),
                 "Date added": datetime.utcnow().strftime("%d/%m/%Y"),
-                "Who added": "automated_script"
+                "Who added": "automated_script",
             }
-            all_data.append(comment_data)
+            relevant_comments.append(comment_data)
             comment_count += 1
 
+        # Add post and its relevant comments if criteria met
+        if post_has_keyword or relevant_comments:
+            all_data.append(post_data)
+            all_data.extend(relevant_comments)
+            post_count += 1
+            print(f"Added post {post_id} ({len(relevant_comments)} comments)")
+
+    print(f"✅ Total relevant items: {len(all_data)} / Scrapped: {scrapped}")
     return all_data
 
 def save_subreddits_to_excel(
@@ -196,7 +243,8 @@ def save_subreddits_to_excel(
         output_path: str = "reddit_threads.xlsx",
         limit: int = 5,
         start_date: datetime | None = None,
-        end_date: datetime | None = None
+        end_date: datetime | None = None,
+        key_words: list[str] | None = None
 ) -> None:
     """Saves extracted subreddit data to an Excel file.
     Args:
@@ -219,7 +267,7 @@ def save_subreddits_to_excel(
 
     for sub_name in subreddit_names:
         subreddit = reddit.subreddit(sub_name)
-        all_data = extract_post_data(subreddit, limit=limit, start_date=start_date, end_date=end_date)
+        all_data = extract_post_data(subreddit, limit=limit, start_date=start_date, end_date=end_date,key_words=key_words)
 
         ws = wb.create_sheet(title=sub_name[:31])
         # Headers
@@ -256,5 +304,6 @@ if __name__ == "__main__":
     begin = datetime(2020, 1, 1)
     end = None
     # "GriefSupport", Futurology
-    threads = [ "ProjectDecember1982"]
-    save_subreddits_to_excel(reddit, threads, output_path="reddit_threads.xlsx", limit=30, start_date=begin, end_date=end)
+    threads = ["Chatbots", "artificial", "ArtificialInteligence"]
+
+    save_subreddits_to_excel(reddit, threads, output_path="reddit_threads.xlsx", limit=30, start_date=begin, end_date=end, key_words=key_words_1)
