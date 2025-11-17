@@ -6,11 +6,12 @@ from model import Post
 from utils import CLIENT_ID, CLIENT_SECRET, extract_post_data, get_words_list
 
 
-def frequent_words(list_posts: list[Post]) -> list[tuple[str, int]]:
+def frequent_words(list_posts: list[Post], toppest: int) -> list[tuple[str, int]]:
     """
     Get the most common words from a list of posts/comments.
     Args:
         list_posts (list[Post]): List of Post objects containing content.
+        toppest (int): Number of top common words to return.
     Returns:
         list[tuple[str, int]]: List of tuples with the most common words and their counts.
     """
@@ -27,7 +28,7 @@ def frequent_words(list_posts: list[Post]) -> list[tuple[str, int]]:
     ]
 
     # Get the most common words
-    common_words = Counter(words).most_common(2)
+    common_words = Counter(words).most_common(toppest)
 
     return common_words
 
@@ -37,18 +38,18 @@ if __name__ == "__main__":
         client_secret=CLIENT_SECRET,
         user_agent="u/sk00bew",
     )
-    subreddit = reddit.subreddit("Futurology")
+    subreddit = reddit.subreddit("GriefSupport")
     begin = datetime(2020, 1, 1)
     end = None
 
     all_data = extract_post_data(
-        subreddit,
-        limit=3,
+        subreddit=subreddit,
+        limit=100,
         start_date=begin,
         end_date=end,
         key_words=None,
     )
-    common_words = frequent_words(all_data)
+    common_words = frequent_words(list_posts=all_data, toppest=20)
     print("Most common words:")
     for word, count in common_words:
         print(f"{word}: {count}")
