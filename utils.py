@@ -31,7 +31,7 @@ def get_words_lists_old() -> tuple[list[str], list[str]]:
     return positive_words, negative_words
 
 
-def analyze_post_interactions(subreddit: Subreddit, type: str, limit: int = 5) -> None:
+def analyze_post_interactions(subreddit: Subreddit, type: str, limit: int) -> None:
     """Analyze interactions on the most popular posts in a subreddit.
     Args:
         subreddit (Subreddit): The subreddit to analyze.
@@ -161,8 +161,7 @@ def extract_post_data(
         end_date (datetime | None): End date for filtering posts/comments.
         key_words (list[str] | None): List of keywords to filter posts/comments.
     Returns:
-        list[dict]: List of extracted post and comment data.
-
+        list[Post]: List of Post and Comment objects matching the criteria.
     """
     all_data = []
     posts = subreddit.top(limit=None)
@@ -233,14 +232,16 @@ def extract_post_data(
             post_count += 1
             print(f"Added post {post.id} ({len(relevant_comments)} comments)")
 
-    print(f"✅ Total relevant items: {len(all_data)} / Scrapped: {scrapped}")
+    print(f"Total relevant items: {len(all_data)} / Scrapped: {scrapped}")
     return all_data
 
 def get_words_list() -> list[str]:
+    """
+    Get a list of common English stopwords with some additions.
+    """
 
     nltk.download("stopwords")
     common_stopwords = stopwords.words("english")
-
     common_stopwords += ["still","even","would","also","could","might","must","need","thing","really","something","anything","everything"]
 
     return common_stopwords

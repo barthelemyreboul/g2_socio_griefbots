@@ -1,9 +1,10 @@
 from datetime import datetime
 import praw
+from praw.models import Subreddit
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
-from praw.models import Subreddit
+
 from config import key_words_1
 from utils import extract_post_data, CLIENT_ID, CLIENT_SECRET
 
@@ -25,6 +26,7 @@ def save_subreddits_to_excel(
         limit (int): Maximum number of posts and comments to extract per subreddit.
         start_date (datetime | None): Start date for filtering posts/comments.
         end_date (datetime | None): End date for filtering posts/comments.
+        key_words (list[str] | None): List of keywords to filter posts/comments.
     """
     wb = Workbook()
     default_sheet = wb.active

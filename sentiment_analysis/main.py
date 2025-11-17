@@ -6,10 +6,14 @@ from model import Post
 from utils import CLIENT_ID, CLIENT_SECRET, extract_post_data, get_words_list
 
 
-
-
-def frequent_words(list_posts: list[Post]):
-    """Get the most common words from a list of posts/comments."""
+def frequent_words(list_posts: list[Post]) -> list[tuple[str, int]]:
+    """
+    Get the most common words from a list of posts/comments.
+    Args:
+        list_posts (list[Post]): List of Post objects containing content.
+    Returns:
+        list[tuple[str, int]]: List of tuples with the most common words and their counts.
+    """
 
     # Getting common English stopwords
     common_stopwords = get_words_list()

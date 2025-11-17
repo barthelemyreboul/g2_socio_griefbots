@@ -32,8 +32,14 @@ class Post(BaseModel):
         parent_post: Optional["Post"] = None,  # param commun, ignoré pour Post
     ) -> "Post":
         """
-        Construire un Post à partir d'un objet PRAW Submission.
-        Signature compatible avec Comment.from_reddit (parent_post optionnel).
+        Create a Post instance from a Reddit object.
+        Args:
+            reddit_obj: The Reddit post object.
+            subreddit: The subreddit object.
+            id_number (int): The ID number for the post.
+            parent_post (Optional[Post]): Ignored for Post, used for Comment.
+        Returns:
+            Post: An instance of the Post class.
         """
         post_datetime = datetime.utcfromtimestamp(getattr(reddit_obj, "created_utc", 0))
         clean_content = (getattr(reddit_obj, "selftext", "") or "").replace("\n", " ").strip()
@@ -76,7 +82,7 @@ class Comment(Post):
         comment_datetime = datetime.utcfromtimestamp(getattr(reddit_obj, "created_utc", 0))
         clean_text = (getattr(reddit_obj, "body", "") or "").replace("\n", " ").strip()
 
-        # Si parent_post fourni, on réutilise ses champs Thread_Title / Tag / Subreddit cohérents.
+        # Get parent post details if available
         thread_title = getattr(parent_post, "Thread_Title", None) if parent_post else None
         parent_tag = getattr(parent_post, "Tag", None) if parent_post else None
         parent_subreddit = f"r/{getattr(subreddit, 'display_name', None)}"
