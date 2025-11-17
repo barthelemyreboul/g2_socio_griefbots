@@ -1,6 +1,6 @@
 [project]
 name = "g2_socio-griefbots"
-version = "1.0.0"
+version = "1.1.0"
 requires-python = ">=3.13"
 dependencies= [
     "dotenv>=0.9.9",
@@ -9,4 +9,5 @@ dependencies= [
     "matplotlib>=3.8.0",
     "tk>=0.1.0",
     "openpyxl>=3.1.2",
+    "pydantic>=2.12.4",
 ]
