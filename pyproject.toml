@@ -1,6 +1,6 @@
 [project]
 name = "g2_socio-griefbots"
-version = "1.1.0"
+version = "1.2.0"
 requires-python = ">=3.13"
 dependencies= [
     "dotenv>=0.9.9",
@@ -11,4 +11,6 @@ dependencies= [
     "openpyxl>=3.1.2",
     "pydantic>=2.12.4",
     "pre-commit>=4.4.0",
+    "sentence-transformers>=5.1.2",
+    "gensim>=4.4.0",
 ]
