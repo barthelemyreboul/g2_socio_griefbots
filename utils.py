@@ -181,7 +181,7 @@ def extract_post_data(
             continue
 
         # Build post data
-        post = Post.from_reddit(raw_post, subreddit, post_count + 1)
+        post = Post.from_reddit(reddit_obj=raw_post, subreddit=subreddit, id_number=post_count + 1)
 
         # Check post keywords
         post_has_keyword = (

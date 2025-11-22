@@ -1,18 +1,17 @@
 from datetime import datetime
 import praw
-from praw.models import Subreddit
+from praw import Reddit
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
 
-from config import key_words_1
+from config import key_words_1,key_words_2,key_words_3
 from utils import extract_post_data, CLIENT_ID, CLIENT_SECRET
 
 
 def save_subreddits_to_excel(
-    reddit: Subreddit,
+    reddit: Reddit,
     subreddit_names: list[str],
-    output_path: str = "reddit_threads.xlsx",
     limit: int = 5,
     start_date: datetime | None = None,
     end_date: datetime | None = None,
@@ -20,7 +19,7 @@ def save_subreddits_to_excel(
 ) -> None:
     """Saves extracted subreddit data to an Excel file.
     Args:
-        reddit (Subreddit): The Reddit instance.
+        reddit (Reddit): The Reddit instance.
         subreddit_names (list): List of subreddit names to extract data from.
         output_path (str): Path to save the Excel file.
         limit (int): Maximum number of posts and comments to extract per subreddit.
@@ -33,21 +32,21 @@ def save_subreddits_to_excel(
     wb.remove(default_sheet)
 
     columns = [
-        "ID",
-        "Reddit URL",
-        "Thread Title",
+        "id",
+        "Reddit_URL",
+        "Thread_Title",
         "Subreddit",
         "Content",
         "Category",
         "Author",
-        "Date Posted",
-        "Number of comments",
+        "Date_Posted",
+        "Number_of_comments",
         "Upvotes",
         "Keywords",
         "Sentiment",
         "Tag",
-        "Date added",
-        "Who added",
+        "Date_added",
+        "Who_added",
     ]
 
     for sub_name in subreddit_names:
@@ -71,7 +70,7 @@ def save_subreddits_to_excel(
         current_row = 2
         for item in all_data:
             for col_idx, col_name in enumerate(columns, start=1):
-                ws.cell(row=current_row, column=col_idx, value=item.get(col_name, None))
+                ws.cell(row=current_row, column=col_idx, value=getattr(item,col_name, None))
             current_row += 1
 
         # Size columns
@@ -88,7 +87,7 @@ def save_subreddits_to_excel(
                 max_length + 2, 60
             )
 
-    wb.save(output_path)
+    wb.save(f"reddit_threads_1.xlsx")
 
 
 if __name__ == "__main__":
@@ -103,12 +102,12 @@ if __name__ == "__main__":
     # "GriefSupport", Futurology
     threads = ["Chatbots", "artificial", "ArtificialInteligence"]
 
+
     save_subreddits_to_excel(
-        reddit,
-        threads,
-        output_path="reddit_threads.xlsx",
-        limit=30,
+        reddit=reddit,
+        subreddit_names=threads,
+        limit=10,
         start_date=begin,
         end_date=end,
-        key_words=key_words_1,
+        key_words=key_words_2
     )

@@ -9,12 +9,12 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 nltk.download('wordnet')
-stop_words = set(stopwords.words("english") + ["even","want","still","would", "every","get","got","make","much","know"])
+stop_words = set(stopwords.words("english") + ["even","thing","want","still","would", "every","get","got","make","much","know"])
 lemmatizer = WordNetLemmatizer()
 
 from model import Post
 from utils import CLIENT_ID, CLIENT_SECRET, extract_post_data, get_words_list
-from config import key_words_1
+from config import key_words_1, key_words_2
 
 def frequent_words(list_posts: list[Post], toppest: int) -> list[tuple[str, int]]:
     """
@@ -74,7 +74,7 @@ def train_lda(posts: list[Post], num_topics=10):
         num_topics=num_topics,
         random_state=42,
         chunksize=len(corpus)//10, # Chunksize = 10% of the corpus
-        passes=10, # Number of iteration
+        passes=15, # Number of iteration
         alpha="auto",
         eta="auto"
     )
@@ -96,17 +96,43 @@ if __name__ == "__main__":
         client_secret=CLIENT_SECRET,
         user_agent="u/sk00bew",
     )
+    list_subs_1 = ["GriefSupport","Futurology"]
+    list_subs_2 = ["Chatbots", "artificial", "ArtificialInteligence"]
+    list_subs_3 = ["ProjectDecember1982"]
+
     subreddit = reddit.subreddit("GriefSupport")
     begin = datetime(2020, 1, 1)
     end = None
-
     all_data = extract_post_data(
         subreddit=subreddit,
         limit=100,
         start_date=begin,
         end_date=end,
-        key_words=key_words_1,
+        key_words=None,
     )
+    #all_data_1 = [
+    #    post
+    #    for sub in list_subs_1
+    #    for post in extract_post_data(
+    #        subreddit=reddit.subreddit(sub),
+    #        limit=100,
+    #        start_date=begin,
+    #        end_date=end,
+    #        key_words=key_words_1,
+    #    )
+    #]
+    #all_data_2 = [
+    #    post
+    #    for sub in list_subs_2
+    #    for post in extract_post_data(
+    #        subreddit=reddit.subreddit(sub),
+    #        limit=100,
+    #        start_date=begin,
+    #        end_date=end,
+    #        key_words=key_words_2,
+    #    )
+    #]
+
     # common_words = frequent_words(list_posts=all_data, toppest=20)
 
     lda, corpus, dictionary = train_lda(all_data, num_topics=5)

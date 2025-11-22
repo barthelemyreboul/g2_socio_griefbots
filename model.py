@@ -5,14 +5,14 @@ from datetime import datetime
 
 class Post(BaseModel):
     id: str
-    Reddit_URL: Optional[HttpUrl] = Field(None, alias="Reddit URL")
-    Thread_Title: Optional[str] = Field(None, alias="Thread Title")
+    Reddit_URL: Optional[str] = Field(None, alias="Reddit_URL")
+    Thread_Title: Optional[str] = Field(None, alias="Thread_Title")
     Subreddit: Optional[str]
     Content: Optional[str]
     Category: str = "post"
     Author: Optional[str]
-    Date_Posted: Optional[str] = Field(None, alias="Date Posted")
-    Number_of_comments: Optional[int] = Field(0, alias="Number of comments")
+    Date_Posted: Optional[str] = Field(None, alias="Date_Posted")
+    Number_of_comments: Optional[int] = Field(0, alias="Number_of_comments")
     Upvotes: int = 0
     Keywords: Optional[List[str]] = None
     Sentiment: Optional[str] = None
@@ -43,23 +43,25 @@ class Post(BaseModel):
         """
         post_datetime = datetime.utcfromtimestamp(getattr(reddit_obj, "created_utc", 0))
         clean_content = (getattr(reddit_obj, "selftext", "") or "").replace("\n", " ").strip()
+        title = getattr(reddit_obj, "title", "")
 
         return cls(
-            id=f"RD-{id_number:02d}",
+            id=f"RD-01-{id_number:02d}",
             **{
-                "Reddit URL": (
+                "Reddit_URL": (
                     f"https://www.reddit.com{getattr(reddit_obj, 'permalink', '')}"
                     if hasattr(reddit_obj, "permalink")
                     else None
                 ),
-                "Thread Title": getattr(reddit_obj, "title", None),
-                "Subreddit": getattr(subreddit, "display_name", None),
+                "Thread_Title": title,
+                "Subreddit": f"r/{getattr(subreddit, "display_name", "")}",
                 "Content": clean_content or None,
+                "Category": "post",
                 "Author": f"u/{getattr(reddit_obj, 'author', None)}"
                 if getattr(reddit_obj, "author", None)
                 else None,
-                "Date Posted": post_datetime.strftime("%d/%m/%Y") if getattr(reddit_obj, "created_utc", None) else None,
-                "Number of comments": getattr(reddit_obj, "num_comments", 0),
+                "Number_of_comments": getattr(reddit_obj, "num_comments"),
+                "Date_Posted": post_datetime.strftime("%d/%m/%Y"),
                 "Upvotes": getattr(reddit_obj, "score", 0),
                 "Tag": getattr(reddit_obj, "link_flair_text", None),
             },
@@ -90,16 +92,17 @@ class Comment(Post):
         return cls(
             id=f"{parent_post.id}-{id_number:02d}" if parent_post else f"RD-{id_number:02d}",
             **{
-                "Reddit URL": (
+                "Reddit_URL": (
                     f"https://www.reddit.com{getattr(reddit_obj, 'permalink', '')}"
                     if hasattr(reddit_obj, "permalink")
                     else None
                 ),
-                "Thread Title": thread_title,
+                "Thread_Title": thread_title,
                 "Subreddit": parent_subreddit,
                 "Content": clean_text or None,
+                "Category": "comment",
                 "Author": f"u/{getattr(reddit_obj, 'author', None)}" if getattr(reddit_obj, "author", None) else "",
-                "Date Posted": comment_datetime.strftime("%d/%m/%Y") if getattr(reddit_obj, "created_utc", None) else None,
+                "Date_Posted": comment_datetime.strftime("%d/%m/%Y") if getattr(reddit_obj, "created_utc", None) else None,
                 "Upvotes": getattr(reddit_obj, "score", 0),
                 "Tag": parent_tag,
                 "Keywords": None,
